@@ -27,7 +27,6 @@ def trivial_model():
     return model
 
 def train_and_save(name, model, X,y):
-    import pdb; pdb.set_trace()
     model.fit(X, y, validation_split=0.2, shuffle=True)
     model.save(name+"_model.h5")
 
