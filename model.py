@@ -174,8 +174,7 @@ def train_and_save(epochs, name, train_gen, valid_gen):
     train_len = next(train_gen)
     valid_len = next(valid_gen)
     model.summary()
-    # adam = Adam(lr=1e-04, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-    model.compile(optimizer=Adam(), loss='mae')
+    model.compile(optimizer=Adam(), loss='mse')
     history = model.fit_generator(train_gen,
                                   samples_per_epoch=train_len,
                                   validation_data=valid_gen,
