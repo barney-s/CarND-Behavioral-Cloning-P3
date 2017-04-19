@@ -78,7 +78,7 @@ Other models tested include Nvidia model.
 - I used a combination of center lane driving and cornering data.
 
 ### Model Architecture and Training Strategy
-####1. Solution Design Approach
+#### 1. Solution Design Approach
 **Starting point**  
 At the begining, i was using my recorded training data with a _Trivial Model_ and checking the loss. The car was behaving erraticaly. 
 
@@ -138,7 +138,7 @@ The model was still not negotiating certain acute curves. On slack channels came
 Over several iterations of adjusting model parameters, preprocessing, balancing etc, i also turned off image augmentation to reduce the amount of training data. That seemed to marginally improve the performance. (TODO - quantify)
 
 
-####2. Final Model Architecture
+#### 2. Final Model Architecture
 
 Here is a visualization of the modified comma.ai model that i used to succesfully complete a few laps on the lake track.
 
@@ -179,7 +179,7 @@ Non-trainable params: 0
 ```
 
 
-####3. Creation of the Training Set & Training Process
+#### 3. Creation of the Training Set & Training Process
 
 As described in _1. Solution Design Approach_, I started off with a large training data with marginal success. Finaly once the data was balanced and curated to a smaller dataset, the model performed better. 
 
@@ -206,5 +206,4 @@ Thought iam not able to intuitively quantify or explain, these were the observat
 * https://www.reddit.com/r/MachineLearning/comments/2x0bq8/some_questions_regarding_batch_normalization/?su=ynbwk&st=iprg6e3w&sh=88bcbe40
 * https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
 * https://arxiv.org/abs/1610.02391v1
-* 
 * slack channels
