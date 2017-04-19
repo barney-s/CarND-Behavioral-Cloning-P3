@@ -111,15 +111,15 @@ def load_training_data(model):
         else:
             df = df.append(_df)
 
-    generate_histogram(df, model, "orig")
     if not FLAGS.balanced:
         print("balancing data")
+        generate_histogram(df, model, "orig")
         ndf = balance_steering_data(df)
         save_balanced_data(ndf, model)
+        generate_histogram(ndf, model, "balanced")
     else:
         print("not balancing data")
         ndf = df
-    generate_histogram(ndf, model, "balanced")
     entries = ndf.values.tolist()
     train, valid = train_test_split(entries, test_size=test_size)
     print("Train: {}, Validate: {}".format(len(train), len(valid)))
