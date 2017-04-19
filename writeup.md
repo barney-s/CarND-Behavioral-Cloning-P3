@@ -26,7 +26,7 @@ The goals / steps of this project are the following:
 ## Rubric Points
 ### Files Submitted & Code Quality
 
-#####1. Submission includes all required files and can be used to run the simulator in autonomous mode
+##### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 All project files are available at [Barney-s CarnND Repo](https://github.com/barney-s/CarND-Behavioral-Cloning-P3)
 
@@ -50,7 +50,7 @@ python drive.py comma.ai
 ##### 3. Submission code is usable and readable
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline that is used for training and validating the model, and it contains comments to explain how the code works.
 
-### Model Architecture and Training Strategy
+### Model Architecture and Training
 
 ##### 1. An appropriate model architecture has been employed
 
@@ -77,7 +77,7 @@ Other models tested include Nvidia model.
 - Used udacity's training data augmented by training data from Eric L and my own training data for curves to keep the vehicle driving on the road.
 - I used a combination of center lane driving and cornering data.
 
-### Model Architecture and Training Strategy
+### Detailed Model Architecture and Training Strategy 
 #### 1. Solution Design Approach
 
 **Starting point**  
@@ -195,6 +195,9 @@ Thought iam not able to intuitively quantify or explain, these were the observat
 - small balanced data + medium network - better perfomance
 - small data + large network (nvidia) - not great performance
 - TODO: large data + large network 
+
+## Video of a succesfull run
+[Lake Track Video](https://github.com/barney-s/CarND-Behavioral-Cloning-P3/blob/master/video.mp4)
 
 ## Approaches not taken
 - More image augmentation like rotation, tranformation, adjust brightness, add shadows, use more camera angles
