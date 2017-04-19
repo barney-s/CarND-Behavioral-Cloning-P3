@@ -28,6 +28,7 @@ from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
 from image import preprocess
 from image import CROPPED_SHAPE
+from keras.utils.visualize_util import plot as model_plot
 
 TF_FLAGS = tf.app.flags
 FLAGS = TF_FLAGS.FLAGS
@@ -49,7 +50,7 @@ def generate_histogram(df, model, name, col="steering"):
 def balance_steering_data(df):
     """
      from ....|.....  more data between -0.25 to 0.25, ignoring extreme points
-     to   .:.:::.:.:  data spread on all bins
+     to   .|.|||.|.|  data spread on all bins
     """
     y = -0.5
     yd = 1/100
@@ -293,6 +294,9 @@ def train_and_save(epochs, name, train_gen, valid_gen):
     plt.legend(['training', 'validation'], loc='upper right')
     plt.savefig(file_prefix + "_training.png")
     # plt.show()
+
+    # save visual model plot
+    model_plot(model, to_file=file_prefix + '_model.png', show_shapes=True)
 
 
 def main(_):

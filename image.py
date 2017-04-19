@@ -20,10 +20,9 @@ def preprocess(image):
 
 if __name__ == '__main__':
     base = ""
-    imgfile = "udacity/IMG/center_2016_12_01_13_30_48_287.jpg"
-    imgfile = "run1/IMG/center_2017_04_15_18_19_55_334.jpg"
+    imgfile = "IMG/center_2016_12_01_13_33_04_891.jpg"
     oimg = cv2.imread(base + imgfile)
-    img = preprocess(oimg, "comma.ai")
+    img = preprocess(oimg)
     plt.figure(0), plt.imshow(cv2.cvtColor(oimg, code=cv2.COLOR_BGR2RGB))
     plt.figure(1), plt.imshow(img)
     plt.show()
