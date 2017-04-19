@@ -16,7 +16,7 @@ The goals / steps of this project are the following:
 [balanced data]: ./comma.ai/comma.ai_balanced_hist.png "Balanced Data Histogram"
 [original data]: ./comma.ai/comma.ai_orig_hist.png "Original Data Histogram"
 [comma.ai training]: ./comma.ai/comma.ai_training.png "Training MSE Loss"
-[comma.ai model]: comma.ai_model.png "Modified Comma.ai model"
+[comma.ai model]: ./comma.ai/comma.ai_model.png "Modified Comma.ai model"
 [input image 1]: ./examples/input1.png "Input image 1"
 [input image 2]: ./examples/input2.png "Input image 2"
 [processed image 1]: ./examples/processed1.png "Processes image 1"
@@ -77,11 +77,134 @@ Other models tested include Nvidia model.
 - Used udacity's training data augmented by training data from Eric L and my own training data for curves to keep the vehicle driving on the road.
 - I used a combination of center lane driving and cornering data.
 
+### Model Architecture and Training Strategy
+####1. Solution Design Approach
+**Starting point**  
+At the begining, i was using my recorded training data with a _Trivial Model_ and checking the loss. The car was behaving erraticaly. 
 
+- Trivial model
+- Captured training data from simulator
+- No drouputs, regularization
+- Normalized image in keras using Lambda layer
+- augmentation - mirroring of images
+- used data from all cameras with steering angle corection (0.2)
+
+**Check different models stage**  
+Tried other well known models: _Nvidia_, _comma.ai_ and both perfomed poorly. This stage was the most excrutiating in terms of understanding what was happening.
+
+- few runs with trivial and comma.ai, nvidia models (elu activation)
+- output was a single angle with minimal variations. failed to cross even the first curve.
+- Cropped the image
+
+**More Data**  
+Suspecting that the input data wasn't good, tried adding more training data: Udacity training data, more lap training data. But the model still performed poorly.
+
+**Adjusting Preprocessing**  
+Tried different preprocessing techniques to understand their impact on the model performance.  
+*Cropping*  
+- More Cropping: This improved the performance  
+
+*Image Adjustment*  
+- CLAHE: This did not help much.
+- Simple conversion to HSV colorspace helped.
+
+*Normalization*  
+- Normalized the image data (did not test without it - TODO ?)
+    
+With these the model performed better.
+
+![input image 1] ![processed image 1] 
+![input image 2] ![processed image 2] 
+
+
+**Changing the activation function**  
+The biggest improvement in performance came when i switched from ELU to RELU/Tanh. Finally settled on tanh since that seemed to have a better performance. (TODO quantify?)
+
+**Balancing Data**  
+The input data was skewed towards low steering angles. Since i could not find a balancing library that handled regression data, i implemented a trivial one (model.py: balance_steering_data) that selects the extreme steering angles (abs(angle) > 0.5) as is and samples the smaller angles with a probablity equal to abs(angle). This improved the model performace and helped with handling the curves better. The car was not negotiating the first few curves.
+
+![original data]
+![balanced data]
+
+This also meant the training was happeneing on a lot fewer images, yet the model was performing better.
+
+**Dropouts and Regularization**  
+Over the several iterations, added droputs and data regularization to increase the distance driven succesfully. It also heled negotiating normal curves.
+
+**Curation of training data**  
+The model was still not negotiating certain acute curves. On slack channels came across an approach succesfully implemented by Eric Levine. He used carefully curated set of very few images to successfully train the CNN.  That inspired me to curated out (removing) negatively impacting training angles in the curves. This helped the model negotiate those curves.
+
+**No Augmentation**  
+Over several iterations of adjusting model parameters, preprocessing, balancing etc, i also turned off image augmentation to reduce the amount of training data. That seemed to marginally improve the performance. (TODO - quantify)
+
+
+####2. Final Model Architecture
+
+Here is a visualization of the modified comma.ai model that i used to succesfully complete a few laps on the lake track.
+
+![comma.ai model]
+
+The model consists of the following layers.  
+
+```
+Modified comma.ai model:
+____________________________________________________________________________________________________
+Layer (type)                     Output Shape          Param #     Connected to                     
+====================================================================================================
+convolution2d_1 (Convolution2D)  (None, 18, 80, 16)    3088        convolution2d_input_1[0][0]      
+____________________________________________________________________________________________________
+dropout_1 (Dropout)              (None, 18, 80, 16)    0           convolution2d_1[0][0]            
+____________________________________________________________________________________________________
+convolution2d_2 (Convolution2D)  (None, 9, 40, 32)     12832       dropout_1[0][0]                  
+____________________________________________________________________________________________________
+convolution2d_3 (Convolution2D)  (None, 5, 20, 64)     51264       convolution2d_2[0][0]            
+____________________________________________________________________________________________________
+dropout_2 (Dropout)              (None, 5, 20, 64)     0           convolution2d_3[0][0]            
+____________________________________________________________________________________________________
+flatten_1 (Flatten)              (None, 6400)          0           dropout_2[0][0]                  
+____________________________________________________________________________________________________
+dense_1 (Dense)                  (None, 512)           3277312     flatten_1[0][0]                  
+____________________________________________________________________________________________________
+dropout_3 (Dropout)              (None, 512)           0           dense_1[0][0]                    
+____________________________________________________________________________________________________
+dense_2 (Dense)                  (None, 128)           65664       dropout_3[0][0]                  
+____________________________________________________________________________________________________
+dropout_4 (Dropout)              (None, 128)           0           dense_2[0][0]                    
+____________________________________________________________________________________________________
+dense_3 (Dense)                  (None, 1)             129         dropout_4[0][0]                  
+====================================================================================================
+Total params: 3,410,289
+Trainable params: 3,410,289
+Non-trainable params: 0
+```
+
+
+####3. Creation of the Training Set & Training Process
+
+As described in _1. Solution Design Approach_, I started off with a large training data with marginal success. Finaly once the data was balanced and curated to a smaller dataset, the model performed better. 
+
+An example training loss plot:
+![comma.ai training]
+
+With very few training data, the training was much faster and even thought i used less epochs (and more loss), the model performed better.
+
+Thought iam not able to intuitively quantify or explain, these were the observations:  
+
+- small curated data + medium network - better performance
+- small balanced data + medium network - better perfomance
+- small data + large network (nvidia) - not great performance
+- TODO: large data + large network 
+
+## Approaches not taken
+- More image augmentation like rotation, tranformation, adjust brightness, add shadows, use more camera angles
+- More training data - several runs, explicit recovery runs, explicit cornering segments
+- Larger and wider model (nvidia)
 
 ## References
 
-1. https://arxiv.org/abs/1511.07289
-2. https://arxiv.org/pdf/1511.07289.pdf
-3. https://www.reddit.com/r/MachineLearning/comments/2x0bq8/some_questions_regarding_batch_normalization/?su=ynbwk&st=iprg6e3w&sh=88bcbe40
-4. https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
+* https://arxiv.org/pdf/1511.07289.pdf
+* https://www.reddit.com/r/MachineLearning/comments/2x0bq8/some_questions_regarding_batch_normalization/?su=ynbwk&st=iprg6e3w&sh=88bcbe40
+* https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
+* https://arxiv.org/abs/1610.02391v1
+* 
+* slack channels
