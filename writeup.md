@@ -79,6 +79,7 @@ Other models tested include Nvidia model.
 
 ### Model Architecture and Training Strategy
 #### 1. Solution Design Approach
+
 **Starting point**  
 At the begining, i was using my recorded training data with a _Trivial Model_ and checking the loss. The car was behaving erraticaly. 
 
