@@ -1,6 +1,12 @@
-# **Behavioral Cloning** 
+# Behavioral Cloning Project
+[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
 **Behavioral Cloning Project**
+
+In this project, I have used what has been learned about deep neural networks and convolutional neural networks to clone driving behavior. A model was designed in Keras and trained. The model will output a steering angle to an autonomous vehicle.
+
+A simulator is provided, where the car was steered around a track for data collection. The image data and steering angles collected were used to train a neural network and then use this model to drive the car autonomously around the track.
+
 
 The goals / steps of this project are the following:
 
@@ -195,6 +201,84 @@ Thought iam not able to intuitively quantify or explain, these were the observat
 - small balanced data + medium network - better perfomance
 - small data + large network (nvidia) - not great performance
 - TODO: large data + large network 
+
+## Usage
+##### Environment  
+
+- For Lab environment setup, click [here](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md). 
+- Simulator can be downloaded from the classroom.
+- Sample training data is also provided if needed.
+
+##### Training
+
+Training data should have the run-data under a subdir.
+
+```sh
+├── sim_data
+│   ├── eldata
+│   │   ├── IMG/*.jpg
+│   │   └── driving_log.csv
+│   ├── udacity
+│   │   ├── IMG/*.jpg
+│   │   └── driving_log.csv
+    ├── corners
+    │   ├── IMG/*.jpg
+    │   └── driving_log.csv
+    └── run1
+        ├── IMG/*.jpg
+        └── driving_log.csv
+        
+```
+
+Training is done using this command:
+
+```sh
+python model.py --model comma.ai  --datapath ~/Desktop/sim_data/ --epochs 20
+
+# different model
+python model.py --model nvidia  --drive --datapath ~/Desktop/sim_data/ --epochs 10
+
+#To train and drive
+python model.py --drive --model comma.ai  --datapath ~/Desktop/sim_data/ --epochs 20
+```
+
+By default the training balances the data and saves it under the model directory (model/data/balanced). It also created the model files (.json, .h5) as well as some visualization of the model, data balancing and training loss.
+
+```sh
+comma.ai
+├── comma.ai.h5
+├── comma.ai.json
+├── comma.ai_balanced_hist.png
+├── comma.ai_model.png
+├── comma.ai_orig_hist.png
+├── comma.ai_training.png
+└── data
+    └── balanced
+        ├── IMG/*jpg
+        └── comma.ai_input.csv
+
+```
+
+When using balanced data, we should skip balancing to avoid reduction of samples used in training:
+
+```sh
+python model.py --balanced --model comma.ai   --datapath comma.ai/data/ --epochs 20
+```
+
+##### Running in autonomous mode
+
+```sh
+# start simulator in autonomous mode and then
+
+python drive.py comma.ai
+
+# to save the run images
+python drive.py comma.ai test_run
+
+# to create a video of the run
+python video.py test_run
+```
+
 
 ## Video of a succesfull run
 [Lake Track Video](https://github.com/barney-s/CarND-Behavioral-Cloning-P3/blob/master/video.mp4)
