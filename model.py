@@ -1,10 +1,9 @@
 """
+Code to define the CNN model and train it on the images collected from
+Training Runs on the simulator. Started with trivial model and expanded to
+well known CNN models.
 
-https://arxiv.org/abs/1511.07289
-https://arxiv.org/pdf/1511.07289.pdf
-https://www.reddit.com/r/MachineLearning/comments/2x0bq8/some_questions_regarding_batch_normalization/?su=ynbwk&st=iprg6e3w&sh=88bcbe40
-https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
-
+Barni S
 """
 
 import cv2
@@ -30,6 +29,8 @@ from image import preprocess
 from image import CROPPED_SHAPE
 from keras.utils.visualize_util import plot as model_plot
 
+
+# Using TensorFlow app flags to simplify command line arguments
 TF_FLAGS = tf.app.flags
 FLAGS = TF_FLAGS.FLAGS
 TF_FLAGS.DEFINE_integer('epochs', 20, "Training epochs.")
@@ -51,6 +52,9 @@ def balance_steering_data(df):
     """
      from ....|.....  more data between -0.25 to 0.25, ignoring extreme points
      to   .|.|||.|.|  data spread on all bins
+     Balance the data by sampling a fraction of the data equal to the bin
+     start value.  That way the skewed bell shaped histogram become evenly
+     spread out.
     """
     y = -0.5
     yd = 1/100
@@ -72,7 +76,7 @@ def balance_steering_data(df):
 
 def save_balanced_data(df, model):
     """
-    save the selected files
+    Save the selected image files as well as the csv
     """
     imgdir = model + "/data/balanced/IMG/"
     mkdir_p(imgdir)
@@ -98,6 +102,8 @@ def load_training_data(model):
     test_size = 0.01
 
     df = None
+    # Supports reading multiple runs saved as separate directories.
+    # Assumes called from one level up
     for logfile in glob.glob(FLAGS.datapath + "*/*.csv"):
         print("using csv: {}".format(logfile))
         imgpath = FLAGS.datapath + logfile.split("/")[-2] + "/IMG/"
@@ -112,11 +118,15 @@ def load_training_data(model):
         else:
             df = df.append(_df)
 
+    # if we are dealing with already balanced data, we can skip this step.
+    # useful when retraining the model on a previously balanced model.
     if not FLAGS.balanced:
         print("balancing data")
+        # plot the histogram of original data
         generate_histogram(df, model, "orig")
         ndf = balance_steering_data(df)
         save_balanced_data(ndf, model)
+        # plot the histogram of balanced data
         generate_histogram(ndf, model, "balanced")
     else:
         print("not balancing data")
@@ -125,6 +135,7 @@ def load_training_data(model):
     train, valid = train_test_split(entries, test_size=test_size)
     print("Train: {}, Validate: {}".format(len(train), len(valid)))
 
+    # utility to correct steering angle based on camera used
     def _cam_correction(cam):
         return {
              'c': 0,
@@ -132,6 +143,7 @@ def load_training_data(model):
              'r': -steering_correction
           }[cam]
 
+    # procedure that acts as a generator
     def _gen(entries, augment=True):
         if augment:
             yield 6*len(entries)
@@ -145,6 +157,8 @@ def load_training_data(model):
                 for entry in batch:
                     for cam, imgfile in zip(['c', 'l', 'r'], entry[0:3]):
                         img = cv2.imread(imgfile)
+                        # be resilient to errors that may occur when curating
+                        # the input data
                         if img is None:
                             print("Img missing: {}".format(imgfile))
                             break
@@ -152,12 +166,17 @@ def load_training_data(model):
                         steering = float(entry[3]) + _cam_correction(cam)
                         features.append(img)
                         values.append(steering)
+                        # if augment is not set, even left, right cam
+                        # images are ignored
                         if not augment:
                             break
+                        # augment by flipping the image
                         img = np.fliplr(img)
                         features.append(img)
                         values.append(-steering)
                 yield shuffle(np.array(features), np.array(values))
+
+    # Please note: i have turned off augmenting the input images
     return _gen(train, augment=False), _gen(valid, augment=False)
 
 
@@ -216,6 +235,7 @@ def comma_ai_model(name):
     model = Sequential(name=name)
     model.add(Convolution2D(16, 8, 8, subsample=(4, 4), input_shape=shape,
                             border_mode="same", activation="tanh"))
+    # ELU activation performed very poorly in this case !!
     # model.add(ELU())
     model.add(Dropout(.5))
     model.add(Convolution2D(32, 5, 5, subsample=(2, 2),
@@ -270,7 +290,9 @@ def train_and_save(epochs, name, train_gen, valid_gen):
     model = get_model(name)
     train_len = next(train_gen)
     valid_len = next(valid_gen)
+    # print the model summary
     model.summary()
+    # Using adam optimizer
     model.compile(optimizer='adam', loss="mse")
     history = model.fit_generator(train_gen,
                                   samples_per_epoch=train_len,
@@ -285,6 +307,8 @@ def train_and_save(epochs, name, train_gen, valid_gen):
     model.save_weights(file_prefix + '.h5')
     # #save as model with weights
     # model.save(file_prefix + ".h5")
+
+    # plot the mse over training epochs
     fig, ax = plt.subplots()
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -309,5 +333,6 @@ def main(_):
         os.system("python drive.py {}".format(FLAGS.model))
 
 
+# Main entry point
 if __name__ == '__main__':
     tf.app.run()
